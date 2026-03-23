@@ -1847,14 +1847,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be2eb2a941a03ab439a384893719201f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  topSpeed: 10
-  accelerationRate: 4
+  topSpeed: 60
+  accelerationRate: 2
   brakingRate: 8
-  naturalDeceleration: 3
-  maxSteerAngle: 120
-  steerSpeedInfluence: 0.6
-  minSteerSpeed: 0.5
-  driftFactor: 1
+  naturalDeceleration: 2
+  maxSteerAngle: 60
+  steerSpeedInfluence: 0.9
+  minSteerSpeed: 0.1
+  driftFactor: 0.5
 --- !u!61 &1269459645
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -2010,7 +2010,7 @@ Transform:
   m_GameObject: {fileID: 1619393451}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.3996, y: 0.4949, z: 0}
+  m_LocalPosition: {x: -0.3996, y: 0.524, z: 0}
   m_LocalScale: {x: 1.1, y: 0.48125, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
