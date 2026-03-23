@@ -1993,7 +1993,7 @@ MonoBehaviour:
   driftFactor: 0.5
   crashSpeedThreshold: 2
   crashSpeedLossFactor: 0.8
-  crashSound: {fileID: 8300000, guid: d47c838bf5010479fac6a7cc86e6ab51, type: 3}
+  crashSound: {fileID: 8300000, guid: b16bea66171e147cda273422b0a67cad, type: 3}
 --- !u!61 &1269459645
 BoxCollider2D:
   m_ObjectHideFlags: 0
