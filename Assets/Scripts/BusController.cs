@@ -53,7 +53,6 @@ public class BusController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // How hard did we hit? Use the impulse magnitude as impact force
         audioSource.PlayOneShot(crashSound);
         float impactForce = collision.relativeVelocity.magnitude;
 
