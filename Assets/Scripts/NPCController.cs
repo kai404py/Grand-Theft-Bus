@@ -48,26 +48,50 @@ public class NPCController : MonoBehaviour
     public void CreatePath()
     {
         if (isPickedUp) return;
-        
+
+        if (path == null) path = new List<Node>();
+
+        path.RemoveAll(node => node == null);
+
         if (path.Count > 0)
         {
-            int x = 0;
-            transform.position = Vector3.MoveTowards(transform.position, new Vector3(path[x].transform.position.x, path[x].transform.position.y, -2), moveSpeed * Time.deltaTime);
-
-            if (Vector2.Distance(transform.position, path[x].transform.position) <= 0.1f)
+            Node next = path[0];
+            if (next == null)
             {
-                currentNode = path[x];
-                path.RemoveAt(x);
+                path.RemoveAt(0);
+                return;
+            }
+
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                new Vector3(next.transform.position.x, next.transform.position.y, -2),
+                moveSpeed * Time.deltaTime
+            );
+
+            if (Vector2.Distance(transform.position, next.transform.position) <= 0.1f)
+            {
+                currentNode = next;
+                path.RemoveAt(0);
             }
         }
         else
         {
             Node[] nodes = FindObjectsOfType<Node>();
-            while (path == null || path.Count == 0)
+            if (nodes.Length == 0) return;
+
+            if (currentNode == null)
+                currentNode = nodes[Random.Range(0, nodes.Length)];
+
+            int attempts = 0;
+            while (path.Count == 0 && attempts < 10)
             {
-                path = AStarManager.instance.GeneratePath(currentNode, nodes[Random.Range(0, nodes.Length)]);
+                Node target = nodes[Random.Range(0, nodes.Length)];
+                if (target == currentNode) { attempts++; continue; }
+
+                List<Node> result = AStarManager.instance.GeneratePath(currentNode, target);
+                if (result != null) path = result;
+                attempts++;
             }
         }
     }
-    
 }
