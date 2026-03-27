@@ -9,6 +9,7 @@ public class NPCController : MonoBehaviour
     private bool isPickedUp = false;
     private AudioSource audioSource;
     public AudioClip deathSound;
+    public float moveSpeed;
 
     private void Awake()
     {
@@ -51,7 +52,7 @@ public class NPCController : MonoBehaviour
         if (path.Count > 0)
         {
             int x = 0;
-            transform.position = Vector3.MoveTowards(transform.position, new Vector3(path[x].transform.position.x, path[x].transform.position.y, -2), 3 * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, new Vector3(path[x].transform.position.x, path[x].transform.position.y, -2), moveSpeed * Time.deltaTime);
 
             if (Vector2.Distance(transform.position, path[x].transform.position) <= 0.1f)
             {

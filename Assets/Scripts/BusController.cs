@@ -14,6 +14,7 @@ public class BusController : MonoBehaviour
     public float steerSpeedInfluence = 0.9f;
     public float minSteerSpeed = 0.1f;
     public float driftFactor = 0.5f;
+    public float steerReturnSpeed = 90f;
 
     [Header("Collision Settings")]
     public float crashSpeedThreshold = 2f;
@@ -89,12 +90,23 @@ public class BusController : MonoBehaviour
     {
         float speed = Mathf.Abs(currentSpeed);
         if (speed < minSteerSpeed) return;
-
-        float speedFactor = 1f - (speed / topSpeed) * steerSpeedInfluence;
-        float steerAmount = -moveInput.x * maxSteerAngle * speedFactor * Time.fixedDeltaTime;
-
-        float direction = currentSpeed >= 0 ? 1f : -1f;
-        rb.MoveRotation(rb.rotation + steerAmount * direction);
+        if (Mathf.Abs(moveInput.x) > 0.01f)
+        {
+            float speedFactor = 1f - (speed / topSpeed) * steerSpeedInfluence;
+            float steerAmount = -moveInput.x * maxSteerAngle * speedFactor * Time.fixedDeltaTime;
+            float direction = currentSpeed >= 0 ? 1f : -1f;
+            rb.MoveRotation(rb.rotation + steerAmount * direction);
+        }
+        else
+        {
+            Vector2 velocity = rb.linearVelocity;
+            if (velocity.sqrMagnitude > 0.01f)
+            {
+                float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg - 90f;
+                float newAngle = Mathf.MoveTowardsAngle(rb.rotation, targetAngle, steerReturnSpeed * Time.fixedDeltaTime);
+                rb.MoveRotation(newAngle);
+            }
+        }
     }
 
     private void ApplyDrift()
