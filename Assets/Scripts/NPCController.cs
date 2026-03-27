@@ -53,7 +53,7 @@ public class NPCController : MonoBehaviour
     // Creates the path the NPC will take 
     public void CreatePath()
     {
-        if (isPickedUp) return;
+        if (isRunOver) return;
 
         if (path == null) path = new List<Node>();
 
