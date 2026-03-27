@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - City Lights
+  - Bus
   layers:
   - Default
   - TransparentFX

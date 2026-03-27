@@ -6,6 +6,38 @@ public class NPCController : MonoBehaviour
 {
     public Node currentNode;
     public List<Node> path = new List<Node>();
+    private bool isPickedUp = false;
+    private AudioSource audioSource;
+    public AudioClip deathSound;
+
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (isPickedUp) return;
+    
+        if (other.CompareTag("Bus"))
+        {
+            isPickedUp = true;
+            StartCoroutine(PickupSequence());
+        }
+    }
+
+    private IEnumerator PickupSequence()
+    {
+        path.Clear();
+
+        if (audioSource != null && deathSound != null)
+        {
+            audioSource.PlayOneShot(deathSound);
+        }
+
+        yield return new WaitForSeconds(1f);
+        Destroy(gameObject);
+    }
 
     private void Update()
     {
@@ -14,6 +46,8 @@ public class NPCController : MonoBehaviour
 
     public void CreatePath()
     {
+        if (isPickedUp) return;
+        
         if (path.Count > 0)
         {
             int x = 0;

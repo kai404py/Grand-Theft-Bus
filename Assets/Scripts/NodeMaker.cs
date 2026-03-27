@@ -13,14 +13,14 @@ public class NodeMaker : MonoBehaviour
     public List<Node> nodeList;
     public NPCController npc;
 
-    public Tilemap roadMap;
-    public Tilemap pathMap;
+    public Tilemap[] doNotSpawnTilemaps;
     
-    public int mapWidth;
-    public int mapHeight;
+    public Vector2 bboxMin = new Vector2(-100f, -100f);
+    public Vector2 bboxMax = new Vector2(100f, 100f);
+    
+    public float nodeDensity = 1f;
 
     public int maxNPCs;
-    
     
     private bool canDrawGizmos;
 
@@ -31,51 +31,96 @@ public class NodeMaker : MonoBehaviour
 
     private void InitializeGrid()
     {
-        grid = new Grid[mapWidth, mapHeight];
+        float spacing = 1f / Mathf.Max(nodeDensity, 0.01f);
 
-        for (int i = 0; i < grid.GetLength(0); i++)
-        {
-            for (int j = 0; j < grid.GetLength(1); j++)
-            {
-                grid[i, j] = new Grid();
-            }
-        }
-        
-        CreateNodes();
+        int cols = Mathf.RoundToInt((bboxMax.x - bboxMin.x) / spacing);
+        int rows = Mathf.RoundToInt((bboxMax.y - bboxMin.y) / spacing);
+
+        cols = Mathf.Max(cols, 1);
+        rows = Mathf.Max(rows, 1);
+
+        grid = new Grid[cols, rows];
+
+        for (int i = 0; i < cols; i++)
+        for (int j = 0; j < rows; j++)
+            grid[i, j] = new Grid();
+
+        CreateNodes(spacing);
     }
 
-    void CreateNodes()
+    void CreateNodes(float spacing)
     {
         for (int x = 0; x < grid.GetLength(0); x++)
         {
             for (int y = 0; y < grid.GetLength(1); y++)
             {
-                //if (grid[x, y] == grid.Floor)
-                //{
-                Node node = Instantiate(nodePrefab, new Vector2(x + 0.5f, y + 0.5f), Quaternion.identity);
+                float worldX = bboxMin.x + x * spacing + spacing * 0.5f;
+                float worldY = bboxMin.y + y * spacing + spacing * 0.5f;
+                Vector2 worldPos = new Vector2(worldX - 0.5f, worldY - 0.5f);
+
+                if (IsBlockedTile(worldPos)) continue;
+
+                Node node = Instantiate(nodePrefab, worldPos, Quaternion.identity);
                 nodeList.Add(node);
-                //}
             }
         }
-        
-        CreateConnections();
+
+        CreateConnections(spacing);
     }
 
-    void CreateConnections()
+    bool IsBlockedTile(Vector2 worldPos)
     {
-        for (int i = 0; 1 < nodeList.Count; i++)
+        foreach (Tilemap tilemap in doNotSpawnTilemaps)
         {
-            for (int j = i + 1; j < nodeList.Count; j++)
+            if (tilemap == null) continue;
+            
+            Vector3Int center = tilemap.WorldToCell(new Vector3(worldPos.x, worldPos.y, 0));
+            int radius = 1;
+
+            for (int dx = -radius; dx <= radius; dx++)
             {
-                if (Vector2.Distance(nodeList[i].transform.position, nodeList[j].transform.position) <= 1.0f)
+                for (int dy = -radius; dy <= radius; dy++)
                 {
-                    ConnectNodes(nodeList[i], nodeList[j]);
-                    ConnectNodes(nodeList[j], nodeList[i]);
+                    Vector3Int checkCell = new Vector3Int(center.x + dx, center.y + dy, center.z);
+                    if (tilemap.HasTile(checkCell)) return true;
                 }
             }
         }
+        return false;
+    }
+
+    void CreateConnections(float spacing)
+    {
+        float connectionDistance = spacing * 1.5f;
+
+        for (int i = 0; i < nodeList.Count; i++)
+        {
+            for (int j = i + 1; j < nodeList.Count; j++)
+            {
+                if (Vector2.Distance(nodeList[i].transform.position, nodeList[j].transform.position) <= connectionDistance)
+                {
+                    if (!IsPathBlocked(nodeList[i].transform.position, nodeList[j].transform.position))
+                    {
+                        ConnectNodes(nodeList[i], nodeList[j]);
+                        ConnectNodes(nodeList[j], nodeList[i]);
+                    }
+                }
+            }
+        }
+
         canDrawGizmos = true;
         SpawnAI();
+    }
+
+    bool IsPathBlocked(Vector2 from, Vector2 to)
+    {
+        int steps = 5;
+        for (int s = 1; s < steps; s++)
+        {
+            Vector2 samplePoint = Vector2.Lerp(from, to, (float)s / steps);
+            if (IsBlockedTile(samplePoint)) return true;
+        }
+        return false;
     }
 
     void ConnectNodes(Node from, Node to)
@@ -87,11 +132,14 @@ public class NodeMaker : MonoBehaviour
 
     void SpawnAI()
     {
-        Node randNode = nodeList[Random.Range(0, nodeList.Count)];
-        
-        NPCController newNPC = Instantiate(npc, randNode.transform.position, Quaternion.identity);
-        
-        newNPC.currentNode = randNode;
+        for (int i = 0; i < maxNPCs; i++)
+        {
+            Node randNode = nodeList[Random.Range(0, nodeList.Count)];
+
+            NPCController newNPC = Instantiate(npc, randNode.transform.position, Quaternion.identity);
+
+            newNPC.currentNode = randNode;
+        }
     }
 
     private void OnDrawGizmos()
