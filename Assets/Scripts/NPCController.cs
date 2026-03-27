@@ -6,7 +6,7 @@ public class NPCController : MonoBehaviour
 {
     public Node currentNode;
     public List<Node> path = new List<Node>();
-    private bool isPickedUp = false;
+    private bool isRunOver = false;
     private AudioSource audioSource;
     public AudioClip deathSound;
     public float moveSpeed;
@@ -18,17 +18,21 @@ public class NPCController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isPickedUp) return;
-    
+        // Skip if already run over
+        if (isRunOver) return;
+        
+        // if they collide with the bus mark as run over and then call run over
         if (other.CompareTag("Bus"))
         {
-            isPickedUp = true;
-            StartCoroutine(PickupSequence());
+            isRunOver = true;
+            StartCoroutine(RunOver());
         }
     }
 
-    private IEnumerator PickupSequence()
+    // the funtion to run over the NPC and please the death SFX
+    private IEnumerator RunOver()
     {
+        // Stops the NPC from moving
         path.Clear();
 
         if (audioSource != null && deathSound != null)
@@ -40,11 +44,13 @@ public class NPCController : MonoBehaviour
         Destroy(gameObject);
     }
 
+    // Call Create path on update to keep the NPC moving
     private void Update()
     {
         CreatePath();
     }
 
+    // Creates the path the NPC will take 
     public void CreatePath()
     {
         if (isPickedUp) return;
@@ -53,6 +59,7 @@ public class NPCController : MonoBehaviour
 
         path.RemoveAll(node => node == null);
 
+        // if has path
         if (path.Count > 0)
         {
             Node next = path[0];
@@ -62,6 +69,7 @@ public class NPCController : MonoBehaviour
                 return;
             }
 
+            // move the NPC along the path
             transform.position = Vector3.MoveTowards(
                 transform.position,
                 new Vector3(next.transform.position.x, next.transform.position.y, -2),

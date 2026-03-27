@@ -11,6 +11,7 @@ public class AStarManager : MonoBehaviour
         instance = this;
     }
 
+    // Generates the path the NPC will take using A Star
     public List<Node> GeneratePath(Node start, Node end)
     {
         List<Node> openSet = new List<Node>();

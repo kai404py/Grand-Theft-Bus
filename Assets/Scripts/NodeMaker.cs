@@ -37,10 +37,12 @@ public class NodeMaker : MonoBehaviour
             var bus = FindObjectOfType<BusController>();
             if (bus != null) player = bus.transform;
         }
-
+		
+		// Keeps calling node update to make them dynamic
         StartCoroutine(DynamicNodeUpdate());
     }
 
+	// Calls all the other functions for dynamic node and NPC updates
     private IEnumerator DynamicNodeUpdate()
     {
         while (true)
@@ -61,6 +63,7 @@ public class NodeMaker : MonoBehaviour
         }
     }
 
+	// Adds nodes based on a radios around the player
     private void SpawnNearbyNodes()
     {
         if (pathTilemaps == null || pathTilemaps.Length == 0) return;
@@ -99,6 +102,7 @@ public class NodeMaker : MonoBehaviour
         }
     }
 
+	// Removes nodes if they are out side the range of the player
     private void DespawnDistantNodes()
     {
         Vector2 playerPos = player.position;
@@ -119,6 +123,7 @@ public class NodeMaker : MonoBehaviour
         }
     }
 
+	// Removes NPCs that the player cant see
     private void DespawnDistantNPCs()
     {
         Vector2 playerPos = player.position;
@@ -139,6 +144,7 @@ public class NodeMaker : MonoBehaviour
         }
     }
     
+	// Adds more NPCs when they get killed or despawned
     private void TopUpNPCs()
     {
         if (nodeList.Count == 0) return;
@@ -154,6 +160,7 @@ public class NodeMaker : MonoBehaviour
         }
     }
     
+	// Rebuilds connections after they have been moved / added
     private void RebuildConnections()
     {
         float connectionDistance = 2f;
@@ -177,6 +184,7 @@ public class NodeMaker : MonoBehaviour
         }
     }
     
+	// Prevents nodes spawning on roads and buildings
     private bool IsBlockedTile(Vector2 worldPos)
     {
         foreach (Tilemap tilemap in doNotSpawnTilemaps)
@@ -190,6 +198,7 @@ public class NodeMaker : MonoBehaviour
         return false;
     }
 
+	// Makes sure that nodes only spawn on pathable areas
     private bool IsPathBlocked(Vector2 from, Vector2 to)
     {
         int steps = 5;
@@ -207,6 +216,7 @@ public class NodeMaker : MonoBehaviour
         return false;
     }
 
+	// Draws the nices lines between the nodes on sence view
     private void OnDrawGizmos()
     {
         if (!canDrawGizmos) return;
