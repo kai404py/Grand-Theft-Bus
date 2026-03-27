@@ -13,9 +13,14 @@ public class BusController : MonoBehaviour
     public float maxSteerAngle = 60f;
     public float steerSpeedInfluence = 0.9f;
     public float minSteerSpeed = 0.1f;
-    public float driftFactor = 0.5f;
+    public float driftFactor = 0.95f;
+	public float activeDriftFactor = 0.1f;
+	public float driftSteerMultiplier = 10.0f;
+
+	private float currentDriftFactor;
+	private bool isDrifting = false;
     
-    // Add this later broken ATM
+	// Add this later broken ATM
     //public float steerReturnSpeed = 90f;
 
     [Header("Collision Settings")]
@@ -34,7 +39,14 @@ public class BusController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         cameraTransform = GetComponentInChildren<Camera>().transform;
         audioSource = GetComponent<AudioSource>();
+		currentDriftFactor = driftFactor;
     }
+
+    void OnDrift(InputValue value)
+	{
+    	isDrifting = value.isPressed;
+    	currentDriftFactor = isDrifting ? activeDriftFactor : driftFactor;
+	}
 
     public void OnMove(InputValue value)
     {
@@ -43,9 +55,9 @@ public class BusController : MonoBehaviour
 
     private void FixedUpdate()
     {
+		ApplyDrift(currentDriftFactor);
         ApplyAcceleration();
         ApplySteering();
-        ApplyDrift();
     }
 
     private void LateUpdate()
@@ -85,22 +97,26 @@ public class BusController : MonoBehaviour
         }
 
         currentSpeed = Mathf.MoveTowards(currentSpeed, targetSpeed, rate * Time.fixedDeltaTime);
-        rb.linearVelocity = transform.up * currentSpeed;
+        
+		Vector2 forwardVelocity = transform.up * currentSpeed;
+    	Vector2 lateralVelocity = transform.right * Vector2.Dot(rb.linearVelocity, transform.right);
+    	rb.linearVelocity = forwardVelocity + lateralVelocity;
     }
 
     private void ApplySteering()
     {
         float speed = Mathf.Abs(currentSpeed);
         if (speed < minSteerSpeed) return;
-
+    
         float speedFactor = 1f - (speed / topSpeed) * steerSpeedInfluence;
-        float steerAmount = -moveInput.x * maxSteerAngle * speedFactor * Time.fixedDeltaTime;
-
+        float steerMult = isDrifting ? driftSteerMultiplier : 1f;
+        float steerAmount = -moveInput.x * maxSteerAngle * speedFactor * steerMult * Time.fixedDeltaTime;
+    
         float direction = currentSpeed >= 0 ? 1f : -1f;
         rb.MoveRotation(rb.rotation + steerAmount * direction);
     }
 
-    private void ApplyDrift()
+    private void ApplyDrift(float driftFactor)
     {
         Vector2 forwardVelocity = transform.up * Vector2.Dot(rb.linearVelocity, transform.up);
         Vector2 rightVelocity = transform.right * Vector2.Dot(rb.linearVelocity, transform.right);
